@@ -7,6 +7,20 @@
 </head>
 <body>
     <h1>Pitcernia</h1>
+    <script>
+    var mysql = require('mysql');
+
+    var con = mysql.createConnection({
+      host: "libsql://g-rams8u.turso.io",
+      user: "rams8u",
+      password: ""
+    });
+    
+    con.connect(function(err) {
+      if (err) throw err;
+      console.log("Connected!");
+    }); 
+    </script>
     <marquee>PITCERNIA</marquee>
 </body>
 </html>
