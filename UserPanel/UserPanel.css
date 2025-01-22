@@ -1,0 +1,10 @@
+header {
+    background-color: #ff6600;
+}
+a:link {
+    color: white;
+}
+/* mouse over link */
+a:hover {
+    color: #ff6600;
+}
