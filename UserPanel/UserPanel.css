@@ -1,5 +1,6 @@
-header {
+.bg-orange {
     background-color: #ff6600;
+    color: white;
 }
 a:link {
     color: white;
