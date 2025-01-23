@@ -7,9 +7,14 @@ body {
 }
 
 header {
-    background-color: #fff;
-    border-bottom: 1px solid #ddd;
-    padding: 15px;
+    background-color: #ff6600;
+}
+a:link {
+    color: white;
+}
+/* mouse over link */
+a:hover {
+    color: #ff6600;
 }
 
 .banner {
@@ -52,7 +57,7 @@ header {
     font-weight: bold;
 }
 
-/* Form */
+/* Formularz */
 .form-container {
     display: flex;
     justify-content: center;
