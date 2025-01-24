@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
         if (password_verify($haslo, $HasloHash)) {
             // Logowanie udane
             $_SESSION['UzytkownikID'] = $UzytkownikID;
-            header('Location: mojekonto.php'); // Przekierowanie na stronę konta (jeśli logowanie udane)
+            header('Location: ../UserPanel/userPanel.php'); // Przekierowanie na stronę konta (jeśli logowanie udane)
             exit;
         } else {
             $komunikat = "<p style='color: red;'>Nieprawidłowe hasło.</p>";
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
         <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
           <li><a href="#" class="nav-link px-2 text-white">MENU</a></li>
           <li><a href="#" class="nav-link px-2 text-white">KOSZYK</a></li>
-          <li><a href="mojekonto.php" class="nav-link px-2 text-white">MOJE KONTO</a></li>
+          <li><a href="../UserPanel/userPanel.php" class="nav-link px-2 text-white">MOJE KONTO</a></li>
         </ul>
 
        <!-- If na sprawdzenie czy wyswietlamy guziki --> 

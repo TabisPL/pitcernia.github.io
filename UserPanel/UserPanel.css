@@ -9,3 +9,6 @@ a:link {
 a:hover {
     color: #ff6600;
 }
+a:visited {
+    color: white;
+}

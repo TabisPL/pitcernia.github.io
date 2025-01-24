@@ -108,7 +108,7 @@ mysqli_close($conn);
         <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
           <li><a href="#" class="nav-link px-2 text-white">MENU</a></li>
           <li><a href="#" class="nav-link px-2 text-white">KOSZYK</a></li>
-          <li><a href="mojekonto.php" class="nav-link px-2 text-white">MOJE KONTO</a></li>
+          <li><a href="../UserPanel/userPanel.php" class="nav-link px-2 text-white">MOJE KONTO</a></li>
         </ul>
         <!-- If na sprawdzenie czy wyswietlamy guziki -->
     <?php if (!$czyzalogowany): ?>

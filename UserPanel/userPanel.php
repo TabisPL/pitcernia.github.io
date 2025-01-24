@@ -10,13 +10,17 @@ $haslo = '';
 // Połączenie z bazą danych
 $baza = mysqli_connect($serwer, $uzytkownik, $haslo, $baza_danych);
 
-#$logged_user = #Wstawić zalogowanego użytkownika
+if (isset($_SESSION['UzytkownikID'])) {
+  $czyzalogowany = isset($_SESSION['UzytkownikID']);
+  $logged_user = $_SESSION['UzytkownikID'];
+}
 
 // Funkcja tworzy tabelę do wyświetlania zamówień i pobiera je z bazy danych
-#function get_orders() {
-#    $sql = "SELECT Ilosc, Suma, UzytkownikID, KwotaCalkowita, Status, zamowienia.DataUtworzenia, DataAktualizacji, szczegolyzamowienia.PizzaID, Nazwa, Opis, Cena, Rozmiar FROM `szczegolyzamowienia` JOIN zamowienia ON szczegolyzamowienia.ZamowienieID = zamowienia.ZamowienieID JOIN pizze ON szczegolyzamowienia.PizzaID = pizze.PizzaID WHERE UzytkownikID LIKE $logged_user;";
-#    $orders = mysqli_query($baza, $sql);
-#}
+function get_orders($baza) {
+    $sql = "SELECT Ilosc, Suma, UzytkownikID, KwotaCalkowita, Status, zamowienia.DataUtworzenia, DataAktualizacji, szczegolyzamowienia.PizzaID, Nazwa, Cena, Rozmiar FROM `szczegolyzamowienia` JOIN zamowienia ON szczegolyzamowienia.ZamowienieID = zamowienia.ZamowienieID JOIN pizze ON szczegolyzamowienia.PizzaID = pizze.PizzaID WHERE UzytkownikID = '?';";
+    $orders = mysqli_query($baza, $sql);
+    var_dump($orders);
+}
 ?>
 
 <!DOCTYPE html>
@@ -34,22 +38,27 @@ $baza = mysqli_connect($serwer, $uzytkownik, $haslo, $baza_danych);
 <header class="p-3 bg-orange text-white">
     <div class="container">
       <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
-        <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
+        <a class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
         <img src="https://i.imgur.com/hUa9V6E.png" alt="Logo" class="Logo" style="width: 100px; height: auto;"></a>
 
         <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
           <li><a href="#" class="nav-link px-2 text-white">MENU</a></li>
           <li><a href="#" class="nav-link px-2 text-white">KOSZYK</a></li>
-          <li><a href="#" class="nav-link px-2 text-white">MOJE KONTO</a></li>
+          <li><a href="../UserPanel/userPanel.php" class="nav-link px-2 text-white">MOJE KONTO</a></li>
         </ul>
 
+        <?php if (!$czyzalogowany): ?>
         <div class="text-end">
-        <button type="button" class="btn btn-outline-light"><a href="login.php">Login</button></a>
-        <button type="button" class="btn btn-warning"><a href="rejstracja.php">Sign-up</button></a>
+        <a href="../login/login.php" class="btn btn-outline-light me-2">Login</a>
+        <a href="../login/rejestracja.php" class="btn btn-warning">Sign-up</a>
+        <?php endif; ?>
         </div>
       </div>
     </div>
 </header>
+<main>
+<?php get_orders($baza); ?>
+</main>
 
 </body>
 </html>
