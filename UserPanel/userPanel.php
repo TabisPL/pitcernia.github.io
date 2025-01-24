@@ -19,7 +19,7 @@ if (isset($_SESSION['UzytkownikID'])) {
 function get_orders($baza) {
     $sql = "SELECT Ilosc, Suma, UzytkownikID, KwotaCalkowita, Status, zamowienia.DataUtworzenia, DataAktualizacji, szczegolyzamowienia.PizzaID, Nazwa, Cena, Rozmiar FROM `szczegolyzamowienia` JOIN zamowienia ON szczegolyzamowienia.ZamowienieID = zamowienia.ZamowienieID JOIN pizze ON szczegolyzamowienia.PizzaID = pizze.PizzaID WHERE UzytkownikID = '?';";
     $orders = mysqli_query($baza, $sql);
-    var_dump($orders);
+    
 }
 ?>
 
