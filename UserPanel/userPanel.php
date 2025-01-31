@@ -11,7 +11,7 @@ $haslo = '';
 $baza = mysqli_connect($serwer, $uzytkownik, $haslo, $baza_danych);
 
 $czyzalogowany = isset($_SESSION['UzytkownikID']);
-if (isset($_SESSION['UzytkownikID'])) {
+if ($czyzalogowany) {
   $logged_user = $_SESSION['UzytkownikID'];
 }
 
@@ -20,7 +20,7 @@ if (isset($_SESSION['UzytkownikID'])) {
 function get_orders($baza, $logged_user) {
   $sql = "SELECT zamowienia.KwotaCalkowita, zamowienia.Status, zamowienia.DataUtworzenia, zamowienia.DataAktualizacji, szczegolyzamowienia.Ilosc, pizze.Nazwa, pizze.Rozmiar FROM `zamowienia`
   JOIN szczegolyzamowienia ON szczegolyzamowienia.ZamowienieID = zamowienia.ZamowienieID JOIN pizze ON pizze.PizzaID = szczegolyzamowienia.PizzaID
-  WHERE zamowienia.UzytkownikID = '$logged_user';";
+  WHERE zamowienia.UzytkownikID = '$logged_user' ORDER BY DataAktualizacji DESC;";
   $orders = mysqli_query($baza, $sql);
   // Tworzenie tabeli dla każdego zamówienia osobno
   foreach($orders as $order) {
@@ -72,7 +72,7 @@ function get_orders($baza, $logged_user) {
   </br>
   <div class="col-8">
     <?php 
-    if (isset($_SESSION['UzytkownikID'])) {
+    if ($czyzalogowany) {
       get_orders($baza, $logged_user);
     }
     else {
