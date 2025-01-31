@@ -12,3 +12,7 @@ a:hover {
 a:visited {
     color: white;
 }
+.table-rounded {
+    border-radius: 10px;
+    overflow: hidden;
+}
