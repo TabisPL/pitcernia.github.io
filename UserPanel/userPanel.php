@@ -24,13 +24,15 @@ function get_orders($baza, $logged_user) {
   $orders = mysqli_query($baza, $sql);
   // Tworzenie tabeli dla każdego zamówienia osobno
   foreach($orders as $order) {
-    echo "<table class='table table-bordered table-rounded'>";
+    echo "<div class='bg-light justify-content-center'>";
+    echo "<table class='table'>";
     echo "<tr><td>Data utworzenia:</td><td>".$order["DataUtworzenia"]."</td><td>Ostatnia aktualizacja:</td><td>".$order["DataAktualizacji"]."</td></tr>";
     echo "<tr><td>Pizza:</td><td>".$order["Nazwa"]."</td><td>Status:</td><td>".$order["Status"]."</td></tr>";
     echo "<tr><td>Rozmiar:</td><td>".$order["Rozmiar"]."</td></tr>";
     echo "<tr><td>Ilość:</td><td>".$order["Ilosc"]."</td></tr>";
     echo "<tr><td>Cena:</td><td>".$order["KwotaCalkowita"]."</td></tr>";
     echo "</table>";
+    echo "</div>";
   }
 }
 ?>
@@ -67,6 +69,7 @@ function get_orders($baza, $logged_user) {
   </div>
 </header>
 <main>
+  </br>
   <div class="col-8">
     <?php 
     if (isset($_SESSION['UzytkownikID'])) {
