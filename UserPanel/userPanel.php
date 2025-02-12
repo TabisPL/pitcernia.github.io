@@ -18,12 +18,16 @@ if ($czyzalogowany) {
 
 // Funkcja tworzy tabelę do wyświetlania zamówień i pobiera je z bazy danych
 function get_orders($baza, $logged_user) {
-  $sql = "SELECT zamowienia.KwotaCalkowita, zamowienia.Status, zamowienia.DataUtworzenia, zamowienia.DataAktualizacji, szczegolyzamowienia.Ilosc, pizze.Nazwa, pizze.Rozmiar FROM `zamowienia`
+  // Definiowanie zmiennych
+  $total_amount = 0;
+  $sql = "SELECT zamowienia.KwotaCalkowita, zamowienia.Status, zamowienia.DataUtworzenia, zamowienia.DataAktualizacji, szczegolyzamowienia.Ilosc, pizze.Nazwa, pizze.Rozmiar, zamowienia.ZamowienieID FROM `zamowienia`
   JOIN szczegolyzamowienia ON szczegolyzamowienia.ZamowienieID = zamowienia.ZamowienieID JOIN pizze ON pizze.PizzaID = szczegolyzamowienia.PizzaID
-  WHERE zamowienia.UzytkownikID = '$logged_user' ORDER BY DataAktualizacji DESC;";
+  WHERE zamowienia.UzytkownikID = '$logged_user' ORDER BY zamowienia.Status;";
+
   $orders = mysqli_query($baza, $sql);
   // Tworzenie tabeli dla każdego zamówienia osobno
   foreach($orders as $order) {
+    $total_amount += $order["KwotaCalkowita"]; // Sumowanie kwot zamówień
     echo "<div class='bg-light justify-content-center'>";
     echo "<table class='table'>";
     echo "<tr><td>Data utworzenia:</td><td>".$order["DataUtworzenia"]."</td><td>Ostatnia aktualizacja:</td><td>".$order["DataAktualizacji"]."</td></tr>";
@@ -31,9 +35,20 @@ function get_orders($baza, $logged_user) {
     echo "<tr><td>Rozmiar:</td><td>".$order["Rozmiar"]."</td></tr>";
     echo "<tr><td>Ilość:</td><td>".$order["Ilosc"]."</td></tr>";
     echo "<tr><td>Cena:</td><td>".$order["KwotaCalkowita"]."</td></tr>";
+    if ($order["Status"] == "Oczekujace") {
+      $order_id = $order["ZamowienieID"];
+      echo "<tr><td colspan='4'><div class='text-end'><button class='btn btn-warning'>Anuluj Zamówienie</button></div></td></tr>";
+    }
     echo "</table>";
     echo "</div>";
   }
+  return $total_amount;
+}
+// Funkcja sprawdza czy zamówienie nie jest w trakcie realizacji
+function get_status($baza, $order_id) {
+  $sql = "SELECT Status FROM zamowienia WHERE ZamowienieID = '$order_id';";
+  $status = mysqli_query($baza, $sql);
+  return $status;
 }
 ?>
 
@@ -70,14 +85,22 @@ function get_orders($baza, $logged_user) {
 </header>
 <main>
   </br>
-  <div class="col-8">
-    <?php 
-    if ($czyzalogowany) {
-      get_orders($baza, $logged_user);
-    }
-    else {
-      echo  "Użytkownik nie zalogowany!";
-    }?>
+  <div class="container row">
+    <div class="col-8">
+      <?php 
+      if ($czyzalogowany) {
+        $total_amount = get_orders($baza, $logged_user);
+      }
+      else {
+        echo  "Użytkownik nie zalogowany!";
+      }?>
+    </div>
+    <div class="col-4 bg-light text-dark p-3">
+      <h4>Łączna kwota zamówień: </h4>
+      <?php
+        echo "<h3>$total_amount zł</h3>";
+      ?>
+    </div>
   </div>
 </main>
 
