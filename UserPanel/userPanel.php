@@ -39,7 +39,7 @@ function get_orders($baza, $logged_user) {
     echo "<tr><td>Cena:</td><td>".$order["KwotaCalkowita"]."</td>";
     if ($order["Status"] == "Oczekujace") {
       $order_id = $order["ZamowienieID"];
-      echo "<td colspan='4'><div class='text-end'><button class='btn btn-warning'>Anuluj Zamówienie</button></div></td></tr>";
+      echo "<td colspan='4'><div class='text-end'><button type='button' class='btn btn-warning' data-bs-toggle='modal' data-bs-target='#cancelOrderModal'>Anuluj zamówienie</button></div></td></tr>";
     }
     else echo "</tr>";
     echo "</table>";
@@ -65,7 +65,6 @@ function get_status($baza, $order_id) {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
 <body class="bg-dark text-white">
-<script src="userPanel.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <!-- NAGŁÓWEK -->
 <header class="p-3 bg-orange text-white">
@@ -88,12 +87,20 @@ function get_status($baza, $order_id) {
   </div>
 </header>
 <main>
-  <div class="modal" id="cancelOrderModal">
-    <div class="modal-body">
-      <p>Czy na pewno chcesz anulować zamówienie?</p>
-      <button class="btn btn-danger" id="closeModal">Nie</button>
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header text-dark">
+        <h5 class="modal-title" id="cancelModalLabel">Czy napewno chcesz anulować zamówienie?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" >Tak</button>
+        <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Nie</button>
+      </div>
     </div>
   </div>
+</div>
   </br>
   <div class="container row">
     <div class="col-8">
