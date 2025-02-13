@@ -27,18 +27,21 @@ function get_orders($baza, $logged_user) {
   $orders = mysqli_query($baza, $sql);
   // Tworzenie tabeli dla każdego zamówienia osobno
   foreach($orders as $order) {
-    $total_amount += $order["KwotaCalkowita"]; // Sumowanie kwot zamówień
+    if ($order["Status"] != "Anulowane") { // Sprawdzenie czy zamówienie nie było anulowane
+      $total_amount += $order["KwotaCalkowita"]; // Sumowanie kwot zamówień
+    }
     echo "<div class='bg-light justify-content-center'>";
     echo "<table class='table'>";
     echo "<tr><td>Data utworzenia:</td><td>".$order["DataUtworzenia"]."</td><td>Ostatnia aktualizacja:</td><td>".$order["DataAktualizacji"]."</td></tr>";
     echo "<tr><td>Pizza:</td><td>".$order["Nazwa"]."</td><td>Status:</td><td>".$order["Status"]."</td></tr>";
     echo "<tr><td>Rozmiar:</td><td>".$order["Rozmiar"]."</td></tr>";
     echo "<tr><td>Ilość:</td><td>".$order["Ilosc"]."</td></tr>";
-    echo "<tr><td>Cena:</td><td>".$order["KwotaCalkowita"]."</td></tr>";
+    echo "<tr><td>Cena:</td><td>".$order["KwotaCalkowita"]."</td>";
     if ($order["Status"] == "Oczekujace") {
       $order_id = $order["ZamowienieID"];
-      echo "<tr><td colspan='4'><div class='text-end'><button class='btn btn-warning'>Anuluj Zamówienie</button></div></td></tr>";
+      echo "<td colspan='4'><div class='text-end'><button class='btn btn-warning'>Anuluj Zamówienie</button></div></td></tr>";
     }
+    else echo "</tr>";
     echo "</table>";
     echo "</div>";
   }
@@ -62,6 +65,7 @@ function get_status($baza, $order_id) {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
 <body class="bg-dark text-white">
+<script src="userPanel.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <!-- NAGŁÓWEK -->
 <header class="p-3 bg-orange text-white">
@@ -84,6 +88,12 @@ function get_status($baza, $order_id) {
   </div>
 </header>
 <main>
+  <div class="modal" id="cancelOrderModal">
+    <div class="modal-body">
+      <p>Czy na pewno chcesz anulować zamówienie?</p>
+      <button class="btn btn-danger" id="closeModal">Nie</button>
+    </div>
+  </div>
   </br>
   <div class="container row">
     <div class="col-8">
