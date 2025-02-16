@@ -15,38 +15,51 @@ if ($czyzalogowany) {
   $logged_user = $_SESSION['UzytkownikID'];
 }
 
-
 // Funkcja tworzy tabelę do wyświetlania zamówień i pobiera je z bazy danych
 function get_orders($baza, $logged_user) {
   // Definiowanie zmiennych
   $total_amount = 0;
+  $cur_order = -1;
+
   $sql = "SELECT zamowienia.KwotaCalkowita, zamowienia.Status, zamowienia.DataUtworzenia, zamowienia.DataAktualizacji, szczegolyzamowienia.Ilosc, pizze.Nazwa, pizze.Rozmiar, zamowienia.ZamowienieID FROM `zamowienia`
   JOIN szczegolyzamowienia ON szczegolyzamowienia.ZamowienieID = zamowienia.ZamowienieID JOIN pizze ON pizze.PizzaID = szczegolyzamowienia.PizzaID
   WHERE zamowienia.UzytkownikID = '$logged_user' ORDER BY zamowienia.Status;";
-
   $orders = mysqli_query($baza, $sql);
+
   // Tworzenie tabeli dla każdego zamówienia osobno
   foreach($orders as $order) {
     if ($order["Status"] != "Anulowane") { // Sprawdzenie czy zamówienie nie było anulowane
       $total_amount += $order["KwotaCalkowita"]; // Sumowanie kwot zamówień
     }
-    echo "<div class='bg-light justify-content-center'>";
-    echo "<table class='table'>";
-    echo "<tr><td>Data utworzenia:</td><td>".$order["DataUtworzenia"]."</td><td>Ostatnia aktualizacja:</td><td>".$order["DataAktualizacji"]."</td></tr>";
-    echo "<tr><td>Pizza:</td><td>".$order["Nazwa"]."</td><td>Status:</td><td>".$order["Status"]."</td></tr>";
+    // Jeżeli kilka pizz składa się na jedno zamówienie to wyświetl je w jednej tabeli
+    if($cur_order != $order["ZamowienieID"]) { // Sprawdzenie czy zamówienie jest to samo co poprzednie
+      if ($cur_order != -1) { // Zakończenie tabeli z poprzedniej pętli
+        echo "<tr><td>Cena:</td><td>".$order_sum."</td><td>Status:</td><td>".$order_status."</td>";
+        if ($order_status == "Oczekujace") {
+          echo "<td colspan='4'><button type='button' class='btn btn-warning' data-bs-toggle='modal' data-bs-target='#cancelOrderModal'>Anuluj zamówienie</button></tr></table></div>";
+        }
+        else echo "</tr></table></div>";
+      }
+      $cur_order = $order["ZamowienieID"];
+      //Tworzenie nowej tabeli
+      echo "<div class='bg-light justify-content-center'><table class='table'>";
+      echo "<tr><td>Data utworzenia:</td><td>".$order["DataUtworzenia"]."</td><td>Ostatnia aktualizacja:</td><td>".$order["DataAktualizacji"]."</td></tr>";
+    }
+    echo "<tr><td>Pizza:</td><td>".$order["Nazwa"]."</td></tr>";
     echo "<tr><td>Rozmiar:</td><td>".$order["Rozmiar"]."</td></tr>";
     echo "<tr><td>Ilość:</td><td>".$order["Ilosc"]."</td></tr>";
-    echo "<tr><td>Cena:</td><td>".$order["KwotaCalkowita"]."</td>";
-    if ($order["Status"] == "Oczekujace") {
-      $order_id = $order["ZamowienieID"];
-      echo "<td colspan='4'><div class='text-end'><button type='button' class='btn btn-warning' data-bs-toggle='modal' data-bs-target='#cancelOrderModal'>Anuluj zamówienie</button></div></td></tr>";
-    }
-    else echo "</tr>";
-    echo "</table>";
-    echo "</div>";
+    
+    // Zapisanie kwoty i statusu zamówienia do następnej pętli
+    $order_sum = $order["KwotaCalkowita"];
+    $order_status = $order["Status"];
   }
-  return $total_amount;
+  // Zakończenie tabeli z ostatniej pętli
+  echo "<tr><td>Cena:</td><td>".$order_sum."</td><td>Status:</td><td>".$order_status."</td>";
+  echo "</tr></table></div>";
+
+  return $total_amount; // Zwrócenie łącznej kwoty zamówień
 }
+
 // Funkcja sprawdza czy zamówienie nie jest w trakcie realizacji
 function get_status($baza, $order_id) {
   $sql = "SELECT Status FROM zamowienia WHERE ZamowienieID = '$order_id';";
@@ -61,7 +74,7 @@ function get_status($baza, $order_id) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pitcernia</title>
-  <link rel="stylesheet" href="UserPanel.css">
+  <link rel="stylesheet" href="userPanel.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
 <body class="bg-dark text-white">
@@ -87,6 +100,7 @@ function get_status($baza, $order_id) {
   </div>
 </header>
 <main>
+<!-- Okienko do anulowania zamówienia -->
 <div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-sm">
     <div class="modal-content">
@@ -101,25 +115,26 @@ function get_status($baza, $order_id) {
     </div>
   </div>
 </div>
-  </br>
-  <div class="container row">
-    <div class="col-8">
-      <?php 
-      if ($czyzalogowany) {
-        $total_amount = get_orders($baza, $logged_user);
-      }
-      else {
-        echo  "Użytkownik nie zalogowany!";
-      }?>
-    </div>
-    <div class="col-4 bg-light text-dark p-3">
-      <h4>Łączna kwota zamówień: </h4>
-      <?php
-        echo "<h3>$total_amount zł</h3>";
-      ?>
-    </div>
+</br>
+<!-- Wyświetlanie zamówień -->
+<div class="container row">
+  <div class="col-8">
+    <?php 
+    if ($czyzalogowany) {
+      $total_amount = get_orders($baza, $logged_user);
+    }
+    else {
+      echo  "Użytkownik nie zalogowany!";
+    }?>
   </div>
-</main>
-
+  <!-- Wyświetlanie łącznej kwoty zamówień -->
+  <div class="col-4 bg-light text-dark p-3">
+    <h4>Łączna kwota zamówień: </h4>
+    <?php
+      echo "<h3>$total_amount zł</h3>";
+    ?>
+  </div>
+</div>
+<main>
 </body>
 </html>
