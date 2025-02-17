@@ -128,11 +128,14 @@ function get_status($baza, $order_id) {
     }?>
   </div>
   <!-- Wyświetlanie łącznej kwoty zamówień -->
-  <div class="col-4 bg-light text-dark p-3">
+  <div class="col-3 bg-light text-dark p-3">
     <h4>Łączna kwota zamówień: </h4>
     <?php
       echo "<h3>$total_amount zł</h3>";
     ?>
+  </div>
+  <div class="col-1 bg-light p-2">
+    <a href="logout.php" class="btn btn-warning">Wyloguj się</a>
   </div>
 </div>
 <main>
