@@ -55,7 +55,10 @@ function get_orders($baza, $logged_user) {
   }
   // Zakończenie tabeli z ostatniej pętli
   echo "<tr><td>Cena:</td><td>".$order_sum."</td><td>Status:</td><td>".$order_status."</td>";
-  echo "</tr></table></div>";
+  if ($order_status == "Oczekujace") {
+    echo "<td colspan='4'><button type='button' class='btn btn-warning' data-bs-toggle='modal' data-bs-target='#cancelOrderModal'>Anuluj zamówienie</button></tr></table></div>";
+  }
+  else echo "</tr></table></div>";
 
   return $total_amount; // Zwrócenie łącznej kwoty zamówień
 }
@@ -127,15 +130,20 @@ function get_status($baza, $order_id) {
       echo  "Użytkownik nie zalogowany!";
     }?>
   </div>
-  <!-- Wyświetlanie łącznej kwoty zamówień -->
-  <div class="col-3 bg-light text-dark p-3">
-    <h4>Łączna kwota zamówień: </h4>
-    <?php
-      echo "<h3>$total_amount zł</h3>";
-    ?>
-  </div>
-  <div class="col-1 bg-light p-2">
-    <a href="logout.php" class="btn btn-warning">Wyloguj się</a>
+  <div class="col-4">
+    <!-- Wylogowanie -->
+    <div class="bg-light p-2 text-dark text-center">
+      <h4>Kliknij poniżej aby się wylogować:</h4>
+      <a href="logout.php" class="btn btn-warning">Wyloguj się</a>
+    </div>
+    </br>
+    <!-- Wyświetlanie łącznej kwoty zamówień -->
+    <div class="bg-light text-dark text-center p-3">
+      <h3>Łączna kwota zamówień: </h3>
+      <?php
+        echo "<h2>$total_amount zł</h2>";
+      ?>
+    </div>
   </div>
 </div>
 <main>
