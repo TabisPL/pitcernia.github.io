@@ -1,0 +1,2 @@
+na samym dole dodalem po prostu link do pliku logout, podstawowo on cofa do strony login.php mozna zmienic
+
