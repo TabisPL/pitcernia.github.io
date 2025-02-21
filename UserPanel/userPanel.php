@@ -69,6 +69,19 @@ function get_status($baza, $order_id) {
   $status = mysqli_query($baza, $sql);
   return $status;
 }
+
+// Funkcja sprawdza czy zamówienie nie jest aktywne
+function check_status($baza, $logged_user) {
+  $is_active = false;
+  $sql = "SELECT Status FROM zamowienia WHERE UzytkownikID = '$logged_user';";
+  $orders = mysqli_query($baza, $sql);
+  foreach ($orders as $status) {
+    if ($status["Status"] == "Oczekujace" or $status["Status"] == "W trakcie realizacji") {
+      $is_active = true;
+    }
+  }
+  return $is_active;
+}
 ?>
 
 <!DOCTYPE html>
