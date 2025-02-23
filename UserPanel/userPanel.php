@@ -67,7 +67,26 @@ function get_orders($baza, $logged_user) {
 function get_status($baza, $order_id) {
   $sql = "SELECT Status FROM zamowienia WHERE ZamowienieID = '$order_id';";
   $status = mysqli_query($baza, $sql);
-  return $status;
+  if ($status == "W trakcie realizacji" or $status == "Zakonczone") {
+    return true;
+  }
+  else return false;
+}
+
+// Sprawdza czy użytkownik chce anulować zamówienie
+if (isset($_POST['cancelOrder'])) {
+  if (get_status($baza, $cur_order)) {
+    echo "<script>alert('Nie możesz anulować zamówienia, ponieważ jest w trakcie realizacji!');</script>";
+  }
+  else {
+    $sql = "UPDATE `zamowienia` SET `Status` = 'Anulowane' WHERE `zamowienia`.`ZamowienieID` = $cur_order;";
+    if (mysqli_query($baza, $sql)) {
+      header("Location: userPanel.php");
+    }
+    else {
+      echo "<script>alert('Błąd podczas anulowania zamówienia!');</script>";
+    }
+  }
 }
 
 // Funkcja sprawdza czy zamówienie nie jest aktywne
@@ -76,11 +95,27 @@ function check_status($baza, $logged_user) {
   $sql = "SELECT Status FROM zamowienia WHERE UzytkownikID = '$logged_user';";
   $orders = mysqli_query($baza, $sql);
   foreach ($orders as $status) {
-    if ($status["Status"] == "Oczekujace" or $status["Status"] == "W trakcie realizacji") {
+    if ($status["Status"] == "Oczekujace" or $status["Status"] == "WRealizacji") {
       $is_active = true;
     }
   }
   return $is_active;
+}
+
+// Sprawdza czy użytkownik chce usunąć konto
+if (isset($_POST['deleteAccount'])) {
+  if (check_status($baza, $logged_user)) {
+    echo "<script>alert('Nie możesz usunąć konta, ponieważ masz aktywne zamówienie!');</script>";
+  }
+  else {
+    $sql = "UPDATE `uzytkownicy` SET `CzyAktywny` = '0' WHERE `uzytkownicy`.`UzytkownikID` = $logged_user;";
+    if (mysqli_query($baza, $sql)) {
+      header("Location: ../UserPanel/logout.php");
+    }
+    else {
+      echo "<script>alert('Błąd podczas usuwania konta!');</script>";
+    }
+  }
 }
 ?>
 
@@ -125,7 +160,9 @@ function check_status($baza, $logged_user) {
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" >Tak</button>
+        <form action="userPanel.php" method="post">
+          <button class="btn btn-secondary" name="cancelOrder" id="cancelOrder">Tak</button>
+        </form>
         <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Nie</button>
       </div>
     </div>
@@ -143,7 +180,9 @@ function check_status($baza, $logged_user) {
         <p>Uwaga! Tej akcji nie można cofnąć!</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" >Tak</button>
+        <form action="userPanel.php" method="post">
+          <button class="btn btn-secondary" name="deleteAccount" id="deleteAccount">Usuń</button>
+        </form>
         <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Nie</button>
       </div>
     </div>
