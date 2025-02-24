@@ -36,7 +36,7 @@ function get_orders($baza, $logged_user) {
       if ($cur_order != -1) { // Zakończenie tabeli z poprzedniej pętli
         echo "<tr><td>Cena:</td><td>".$order_sum."</td><td>Status:</td><td>".$order_status."</td>";
         if ($order_status == "Oczekujace") {
-          echo "<td colspan='4'><button type='button' class='btn btn-warning' data-bs-toggle='modal' data-bs-target='#cancelOrderModal'>Anuluj zamówienie</button></tr></table></div></br>";
+          echo "<td colspan='4'><form action='userPanel.php' method='post'><button class='btn btn-warning' name='cancelOrder' value=".$cur_order.">Anuluj zamówienie</button></form></tr></table></div></br>";
         }
         else echo "</tr></table></div></br>";
       }
@@ -56,7 +56,7 @@ function get_orders($baza, $logged_user) {
   // Zakończenie tabeli z ostatniej pętli
   echo "<tr><td>Cena:</td><td>".$order_sum."</td><td>Status:</td><td>".$order_status."</td>";
   if ($order_status == "Oczekujace") {
-    echo "<td colspan='4'><button type='button' class='btn btn-warning' data-bs-toggle='modal' data-bs-target='#cancelOrderModal'>Anuluj zamówienie</button></tr></table></div></br>";
+    echo "<td colspan='4'><form action='userPanel.php' method='post'><button class='btn btn-warning' name='cancelOrder' value=".$cur_order.">Anuluj zamówienie</button></form></tr></table></div></br>";
   }
   else echo "</tr></table></div></br>";
 
@@ -75,17 +75,14 @@ function get_status($baza, $order_id) {
 
 // Sprawdza czy użytkownik chce anulować zamówienie
 if (isset($_POST['cancelOrder'])) {
+  $cur_order = $_POST['cancelOrder'];
   if (get_status($baza, $cur_order)) {
     echo "<script>alert('Nie możesz anulować zamówienia, ponieważ jest w trakcie realizacji!');</script>";
   }
   else {
-    $sql = "UPDATE `zamowienia` SET `Status` = 'Anulowane' WHERE `zamowienia`.`ZamowienieID` = $cur_order;";
-    if (mysqli_query($baza, $sql)) {
-      header("Location: userPanel.php");
-    }
-    else {
-      echo "<script>alert('Błąd podczas anulowania zamówienia!');</script>";
-    }
+    $sqlU = "UPDATE `zamowienia` SET `Status` = 'Anulowane' WHERE `zamowienia`.`ZamowienieID` = ".$cur_order.";";
+    mysqli_query($baza, $sqlU);
+    header("Location: userPanel.php");
   }
 }
 
