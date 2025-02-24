@@ -114,6 +114,7 @@ if (isset($_POST['deleteAccount'])) {
     }
   }
 }
+mySqli_close($baza);
 ?>
 
 <!DOCTYPE html>
