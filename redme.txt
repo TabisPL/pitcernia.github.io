@@ -1,0 +1,5 @@
+Aby dołączyć navbara do strony należy dodać:
+1. <link rel="stylesheet" href="../navbar.css">
+do sekcji <head>
+2. <?php include '../navbar.php'; ?>
+w miejsce gdzie chcemy mieć wyświetlonego navbara (najlepiej na samym początku sekcji <body>)
