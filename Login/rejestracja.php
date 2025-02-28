@@ -1,89 +1,81 @@
 <?php
 
-session_start();
+
+/*
+Przydatne linki
+https://codeshack.io/secure-login-system-php-mysql/
+https://www.w3schools.com/php/php_mysql_prepared_statements.asp
+
+*/
 
 $czyzalogowany = isset($_SESSION['UzytkownikID']);
 
-
-// Dane do połączenia z bazą danych
 $serwer = 'localhost';
-$baza_danych = 'pizza3test';
-$uzytkownik = 'root';
-$haslo = '';
+$baza_danych = 'srv82461_pizza3test';
+$uzytkownik = 'srv82461_pizza3test';
+$haslo = '12345678';
 
-// Zmienna na komunikaty
+$conn = new mysqli($serwer, $uzytkownik, $haslo, $baza_danych);
+
 $komunikat = '';
-
-// Połączenie z bazą danych
-$conn = mysqli_connect($serwer, $uzytkownik, $haslo, $baza_danych);
-
-// Sprawdzenie połączenia
-if (!$conn) {
-    die("Błąd połączenia z bazą danych: " . mysqli_connect_error());
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Pobieranie danych z formularza
-    $nazwa_uzytkownika = $_POST['nazwa_uzytkownika'];
-    $imie = $_POST['imie'];
-    $nazwisko = $_POST['nazwisko'];
-    $email = $_POST['email'];
+    $nazwa_uzytkownika = trim($_POST['nazwa_uzytkownika']);
+    $imie = trim($_POST['imie']);
+    $nazwisko = trim($_POST['nazwisko']);
+    $email = trim($_POST['email']);
     $haslo = $_POST['haslo'];
     $potwierdzenie_hasla = $_POST['potwierdzenie_hasla'];
+    $ulica = trim($_POST['ulica']);
+    $numer_domu = trim($_POST['numer_domu']);
+    $numer_mieszkania = trim($_POST['numer_mieszkania']);
+    $kod_pocztowy = trim($_POST['kod_pocztowy']);
+    $miasto = trim($_POST['miasto']);
 
-    $ulica = $_POST['ulica'];
-    $numer_domu = $_POST['numer_domu'];
-    $numer_mieszkania = $_POST['numer_mieszkania'];
-    $kod_pocztowy = $_POST['kod_pocztowy'];
-    $miasto = $_POST['miasto'];
-
-    // Walidacja: sprawdź, czy wszystkie pola zostały wypełnione
     if (empty($nazwa_uzytkownika) || empty($email) || empty($haslo)) {
         $komunikat = "<p style='color: red;'>Wszystkie pola są wymagane!</p>";
+    } elseif ($haslo !== $potwierdzenie_hasla) {
+        $komunikat = "<p style='color: red;'>Hasła nie są takie same.</p>";
     } else {
-        // Sprawdzanie zgodności haseł
-        if ($haslo !== $potwierdzenie_hasla) {
-            $komunikat = "<p style='color: red;'>Hasła nie są takie same.</p>";
+        $haslo_hash = password_hash($haslo, PASSWORD_DEFAULT);
+
+        $stmt = $conn->prepare("SELECT COUNT(*) FROM uzytkownicy WHERE NazwaUzytkownika = ? OR Email = ?");
+        $stmt->bind_param('ss', $nazwa_uzytkownika, $email);
+        $stmt->execute();
+        $stmt->bind_result($liczba_rekordow);
+        $stmt->fetch();
+        $stmt->close();
+
+        if ($liczba_rekordow > 0) {
+            $komunikat = "<p style='color: red;'>Nazwa użytkownika lub e-mail są już w użyciu.</p>";
         } else {
-            // Hashowanie hasła
-            $haslo_hash = password_hash($haslo, PASSWORD_DEFAULT);
-
-            // Sprawdzenie, czy nazwa użytkownika lub e-mail są już w użyciu
-            $zapytanie = $conn->prepare("SELECT COUNT(*) FROM uzytkownicy WHERE NazwaUzytkownika = ? OR Email = ?");
-            $zapytanie->bind_param('ss', $nazwa_uzytkownika, $email);
-            $zapytanie->execute();
-            $zapytanie->bind_result($liczba_rekordow);
-            $zapytanie->fetch();
-            $zapytanie->close();
-
-            if ($liczba_rekordow > 0) {
-                $komunikat = "<p style='color: red;'>Nazwa użytkownika lub e-mail są już w użyciu. Proszę wybrać inne.</p>";
+            $stmt = $conn->prepare("INSERT INTO Uzytkownicy (NazwaUzytkownika, Imie, Nazwisko, Email, HasloHash, DataRejestracji, CzyAktywny) VALUES (?, ?, ?, ?, ?, NOW(), TRUE)");
+            $stmt->bind_param('sssss', $nazwa_uzytkownika, $imie, $nazwisko, $email, $haslo_hash);
+            
+            if ($stmt->execute()) {
+                $uzytkownik_id = $stmt->insert_id;
+                $stmt->close();
+                
+                $stmt = $conn->prepare("INSERT INTO adresyuzytkownikow (UzytkownikID, Miasto, Ulica, NumerDomu, NumerMieszkania, KodPocztowy) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param('isssss', $uzytkownik_id, $miasto, $ulica, $numer_domu, $numer_mieszkania, $kod_pocztowy);
+                $stmt->execute();
+                $stmt->close();
+                
+                // Automatyczne logowanie po rejestracji
+                $_SESSION['UzytkownikID'] = $uzytkownik_id;
+                $_SESSION['Zalogowany'] = true;
+                
+                
+                header('Location: mojekonto.php');
+                exit;
             } else {
-                // Dodawanie użytkownika i adresu
-                $sql_uzytkownik = "INSERT INTO Uzytkownicy (NazwaUzytkownika, Imie, Nazwisko, Email, HasloHash, DataRejestracji, CzyAktywny) 
-                                   VALUES ('$nazwa_uzytkownika', '$imie', '$nazwisko', '$email', '$haslo_hash', NOW(), TRUE)";
-
-                if (mysqli_query($conn, $sql_uzytkownik)) {
-                    $uzytkownik_id = mysqli_insert_id($conn); // Pobranie ID nowo dodanego użytkownika
-
-                    $sql_adres = "INSERT INTO adresyuzytkownikow (UzytkownikID, Miasto, Ulica, NumerDomu, NumerMieszkania, KodPocztowy) 
-                                  VALUES ('$uzytkownik_id', '$miasto', '$ulica', '$numer_domu', '$numer_mieszkania', '$kod_pocztowy')";
-
-                    if (mysqli_query($conn, $sql_adres)) {
-                        $komunikat = "<p style='color: green;'>Rejestracja zakończona sukcesem! Możesz się teraz zalogować.</p>";
-                    } else {
-                        $komunikat = "<p style='color: red;'>Błąd podczas dodawania adresu: " . mysqli_error($conn) . "</p>";
-                    }
-                } else {
-                    $komunikat = "<p style='color: red;'>Błąd podczas rejestracji użytkownika: " . mysqli_error($conn) . "</p>";
-                }
+                $komunikat = "<p style='color: red;'>Błąd podczas rejestracji użytkownika.</p>";
             }
         }
     }
 }
 
-// Zamknięcie połączenia
-mysqli_close($conn);
+$conn->close();
+
 ?>
 
 <!DOCTYPE html>
@@ -92,35 +84,18 @@ mysqli_close($conn);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rejestracja</title>
+
+    
     <link rel="stylesheet" href="login.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
 <body>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <!-- NAVBAR -->
-    <header class="p-3 text">
-    <div class="container">
-      <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
-        <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
-        <img src="https://i.imgur.com/hUa9V6E.png" alt="Logo" class="Logo" style="width: 100px; height: auto;">
-        </a>
-
-        <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-          <li><a href="#" class="nav-link px-2 text-white">MENU</a></li>
-          <li><a href="#" class="nav-link px-2 text-white">KOSZYK</a></li>
-          <li><a href="../UserPanel/userPanel.php" class="nav-link px-2 text-white">MOJE KONTO</a></li>
-        </ul>
-        <!-- If na sprawdzenie czy wyswietlamy guziki -->
-    <?php if (!$czyzalogowany): ?>
-        <a href="login.php" class="btn btn-outline-light me-2">Login</a>
-        <a href="rejestracja.php" class="btn btn-warning">Sign-up</a>
-    <?php endif; ?>
-    </header>
+<?php include '../navbar.php'; ?> <!-- TUTAJ NAVBAR INCLUDE JEST (komentarz dla mnie jakbym zgubil go) -->
     <main>
         <section class="form-container">
         
 
-            <!-- Formularz rejestracji -->
+            <!-- Formularz doo rejestracji -->
             <div id="register" class="form-section">
     <h2>Zarejestruj się</h2>
     <form action="" method="post">
@@ -175,7 +150,7 @@ mysqli_close($conn);
 
         <button type="submit" class="form-button">Zarejestruj się</button>
 
-        <!-- Komunikaty o tworzeniu konta -->
+        
         <?php if (!empty($komunikat)): ?>
                 <div class="komunikat <?php echo strpos($komunikat, 'sukcesem') !== false ? 'success' : 'error'; ?>">
                     <?php echo $komunikat; ?>
